@@ -1,0 +1,16 @@
+.testTool{
+    background-color: #222222;
+}
+.titleText{
+    color : gray;
+}
+
+#demo-simple-select, #demo-simple-select-label{
+    color : white;
+    width : 75px;
+}
+
+
+svg{
+    cursor : pointer;
+}
