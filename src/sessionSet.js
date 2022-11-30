@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import { Typography } from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -38,6 +38,9 @@ const columns: GridColDef[] = [
   { field: 'publicPort', headerName: 'public_port', width: 160, editable: true,},
 ];
 
+
+
+
 //table origin Data (백단에서 select 해온것.)
 let originRows = [
     // { id: 1, no: 1, type: 'pri_inspector_1', privateIp : '10.10.118.10', privatePort: 10000, publicIp : '110.46.166.10', publicPort : '10000'},
@@ -66,7 +69,7 @@ function updateApiCall(queryString){
         'Accept' : 'application/json',
         'Content-Type' : 'application/json'
     },
-    method: "PATH"
+    method: "PATCH"
     })
     .then(function(res){console.log(res)})
     .catch(function(res){console.log(res)})    
@@ -77,7 +80,7 @@ function updateApiCall(queryString){
 
 export default function SessionSet(){
 
-    
+    //초기 api call
     useEffect(()=> {        
         fetch('http://localhost:3001/session')
         .then(res => {
@@ -100,24 +103,34 @@ export default function SessionSet(){
 
     //조회 기능관련 state, 사용 변수
     //rows가 조회될 데이터들이며 처음에는 originRows로 초기화한다.
-    const [rows, setRows] = useState(originRows);
+    const [rows, setRows] = useState(originRows);    
+    //datagrid 수정 handller
+    const handleRowEditCommit = (newRow, oldRow) => {        
+        // console.log(newRow);
+        temporaryRows = [];
+        rows.map((item)=>{
+            
+            if(item.id == newRow.id){                
+                temporaryRows.push(newRow);
+            }else{
+                temporaryRows.push(item);
+            }
 
-    
+        })
+
+        setRows(temporaryRows);        
+    }    
     // 임시 저장변수
-    let temporaryRows =[];
-    
-
-
+    let temporaryRows =[];    
     // Modal 관련 state
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);  
-
     //update 확인용 변수
     const [updateRows, setUpdateRows] = React.useState(false);
     
 
-
+    
     
     return(
         <>       
@@ -134,7 +147,6 @@ export default function SessionSet(){
                     
                     <Button variant="contained" sx = {{mt : 1, ml : 2}} onClick={() =>{                                                
                         //조회 버튼 event 
-
                         //수정사항이 있을경우
                         if(updateRows === true){                            
                             // modal 로 수정 error , suc 
@@ -142,7 +154,6 @@ export default function SessionSet(){
                                 return;
                             }
                         }
-
                         var key = document.getElementById("keywordTextField").value;
                         originRows.map((obj, index)=>{
                             if(obj.type.search(key) > -1){
@@ -152,7 +163,6 @@ export default function SessionSet(){
                         })
                         setUpdateRows(false);
                         setRows(temporaryRows);
-
                     }}>조회</Button>
                 </Box>
             </Grid>            
@@ -179,68 +189,7 @@ export default function SessionSet(){
                         setRows(temporaryRows);       
                         deleteApiCall(queryString);         
                         setUpdateRows(true);                        
-                    }}>삭제</Button>
-                    {/* <Button onClick={() =>{
-                        var checkBoxs = document.getElementsByClassName("PrivateSwitchBase-input");
-                        rows.map((obj, index)=>{
-                            temporaryRows.push(obj);
-                        });
-
-                        
-                        for(var i = 1; i < checkBoxs.length; i++){
-                            
-                            if(checkBoxs[i].checked  && i > 1){ // check 된 상태이며 i가 1보다 클때.                                
-                                checkBoxs[i].checked = false;
-                                var changeRow=[];
-                                changeRow.push(temporaryRows[i-1]);// 현재 원소                                                                
-                                changeRow.push(temporaryRows[i-2]); // 위에있는 원소
-                                
-                                //ID NO swap 
-                                
-                                changeRow[0].id = i-1;
-                                changeRow[0].no = i-1;
-                                
-                                changeRow[1].id = i;
-                                changeRow[1].no = i;
-
-                                // console.log(changeRow);
-                                temporaryRows.splice(i-2,2, changeRow[0], changeRow[1]); 
-                                // console.log(temporaryRows);                                
-                            }
-                        }
-                        setRows(temporaryRows);
-                        
-                    }}>위로</Button>
-                    <Button onClick={() =>{
-
-                        var checkBoxs = document.getElementsByClassName("PrivateSwitchBase-input");
-                        originRows.map((obj, index)=>{
-                            temporaryRows.push(obj);
-                        });
-
-                        
-                        for(var i = 1; i < checkBoxs.length; i++){
-                            
-                            if(checkBoxs[i].checked  && checkBoxs.length-1 > i){ // check 된 상태이며 i가 1보다 클때.                                
-                                checkBoxs[i].checked = false;
-                                var changeRow=[];
-                                changeRow.push(temporaryRows[i]); // 아래에 있는 원소
-                                changeRow.push(temporaryRows[i-1]);// 현재 원소                                                                
-                                //ID NO swap 
-                                
-                                changeRow[0].id = i;
-                                changeRow[0].no = i;
-                                
-                                changeRow[1].id = i+1;
-                                changeRow[1].no = i+1;
-
-                                // console.log(changeRow);
-                                temporaryRows.splice(i-1,2, changeRow[0], changeRow[1]); 
-                                // console.log(temporaryRows);                                
-                            }
-                        }
-                        setRows(temporaryRows);
-                    }}>아래로</Button> */}
+                    }}>삭제</Button>                    
                 </ButtonGroup>
                 
             </Grid>
@@ -253,12 +202,14 @@ export default function SessionSet(){
                 }}>원래대로</Button>
                 <Button onClick={() =>{
                     //적용시 DB 접근
-                    setUpdateRows(false);   
-                    // updateApiCall();                 
+                    setUpdateRows(false);       
+                    var callUrl = "http://localhost:3001/session?"+ makeUpdateQueryString(rows);
+                    console.log(callUrl)
+                    updateApiCall(callUrl);                 
                 }}>적용</Button>
             </ButtonGroup>
             </Grid>   
-            <CreateTable rowData = {rows}/>
+            <CreateTable rowData = {rows} handle = {handleRowEditCommit}/>
         </Grid>
 
 
@@ -306,7 +257,25 @@ export default function SessionSet(){
 }
 
 
+function makeDeleteQueryString(rows){
+    
+}
+function makeUpdateQueryString(rows){
+    let queryData = "";
+    rows.map((item, index)=>{
+        if(index != 0){
+           queryData += "&";
+        }
+        queryData +=
+            "id=" + item.id +
+            "&privateIp=" + item.privateIp +
+            "&privatePort=" + item.privatePort +
+            "&publicIp=" + item.publicIp +
+            "&publicPort=" + item.publicPort                 
+    })
 
+    return queryData;
+}
 function CreateTable(props){
     
     return(
@@ -322,9 +291,73 @@ function CreateTable(props){
                 disableSelectionOnClick
                 experimentalFeatures={{ newEditingApi: true }}            
                 sx = {{mt : 2}}
+                processRowUpdate={props.handle}
             />
             </Box>    
             </Grid>
         </>
     )
 }
+
+
+{/* <Button onClick={() =>{
+var checkBoxs = document.getElementsByClassName("PrivateSwitchBase-input");
+rows.map((obj, index)=>{
+    temporaryRows.push(obj);
+});
+
+
+for(var i = 1; i < checkBoxs.length; i++){
+    
+    if(checkBoxs[i].checked  && i > 1){ // check 된 상태이며 i가 1보다 클때.                                
+        checkBoxs[i].checked = false;
+        var changeRow=[];
+        changeRow.push(temporaryRows[i-1]);// 현재 원소                                                                
+        changeRow.push(temporaryRows[i-2]); // 위에있는 원소
+        
+        //ID NO swap 
+        
+        changeRow[0].id = i-1;
+        changeRow[0].no = i-1;
+        
+        changeRow[1].id = i;
+        changeRow[1].no = i;
+
+        // console.log(changeRow);
+        temporaryRows.splice(i-2,2, changeRow[0], changeRow[1]); 
+        // console.log(temporaryRows);                                
+    }
+}
+setRows(temporaryRows);
+
+}}>위로</Button>
+<Button onClick={() =>{
+
+var checkBoxs = document.getElementsByClassName("PrivateSwitchBase-input");
+originRows.map((obj, index)=>{
+    temporaryRows.push(obj);
+});
+
+
+for(var i = 1; i < checkBoxs.length; i++){
+    
+    if(checkBoxs[i].checked  && checkBoxs.length-1 > i){ // check 된 상태이며 i가 1보다 클때.                                
+        checkBoxs[i].checked = false;
+        var changeRow=[];
+        changeRow.push(temporaryRows[i]); // 아래에 있는 원소
+        changeRow.push(temporaryRows[i-1]);// 현재 원소                                                                
+        //ID NO swap 
+        
+        changeRow[0].id = i;
+        changeRow[0].no = i;
+        
+        changeRow[1].id = i+1;
+        changeRow[1].no = i+1;
+
+        // console.log(changeRow);
+        temporaryRows.splice(i-1,2, changeRow[0], changeRow[1]); 
+        // console.log(temporaryRows);                                
+    }
+}
+setRows(temporaryRows);
+}}>아래로</Button> */}
