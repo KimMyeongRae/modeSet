@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import { Typography } from '@mui/material';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -27,25 +27,77 @@ const style = {
   };
 
 
+
 //table columns 
 const columns: GridColDef[] = [ 
-  { field: 'no', headerName: 'No', width: 70, type : 'number' },
-  { field: 'type', headerName: '구분', width: 130 },
-  { field: 'privateIp', headerName: 'private_ip', width: 130 },
-  { field: 'privatePort', headerName: 'private_port', width: 90},
-  { field: 'publicIp', headerName: 'public_ip', width: 160},
-  { field: 'publicPort', headerName: 'public_port', width: 160},
+  { field: 'no', headerName: 'No', width: 70, type : 'number',editable: true, },
+  { field: 'sessionName', headerName: '구분', width: 130,editable: true, },
+  { field: 'privateIp', headerName: 'private_ip', width: 130, editable: true, },
+  { field: 'privatePort', headerName: 'private_port', width: 90, editable: true,},
+  { field: 'publicIp', headerName: 'public_ip', width: 160, editable: true,},
+  { field: 'publicPort', headerName: 'public_port', width: 160, editable: true,},
 ];
 
 //table origin Data (백단에서 select 해온것.)
 let originRows = [
-    { id: 1, no: 1, type: 'pri_inspector_1', privateIp : '10.10.118.10', privatePort: 10000, publicIp : '110.46.166.10', publicPort : '10000'},
-    { id: 2, no: 2, type: 'pri_inspector_2', privateIp : '10.10.118.10', privatePort: 10000, publicIp : '110.46.166.10', publicPort : '10000'},
-    { id: 3, no: 3, type: 'pri_inspector_3', privateIp : '10.9.26.10', privatePort: 10000, publicIp : 'NULL', publicPort : '0'}
+    // { id: 1, no: 1, type: 'pri_inspector_1', privateIp : '10.10.118.10', privatePort: 10000, publicIp : '110.46.166.10', publicPort : '10000'},
+    // { id: 2, no: 2, type: 'pri_inspector_2', privateIp : '10.10.118.10', privatePort: 10000, publicIp : '110.46.166.10', publicPort : '10000'},
+    // { id: 3, no: 3, type: 'pri_inspector_3', privateIp : '10.9.26.10', privatePort: 10000, publicIp : 'NULL', publicPort : '0'}
 ];
+
+function deleteApiCall(queryString){
+    console.log(queryString);    
+    fetch(queryString,
+    {
+    headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+    },
+    method: "DELETE"
+    })
+    .then(function(res){ console.log(res) })
+    .catch(function(res){ console.log(res) })
+}
+
+
+function updateApiCall(queryString){
+    fetch(queryString, {
+    headers :{
+        'Accept' : 'application/json',
+        'Content-Type' : 'application/json'
+    },
+    method: "PATH"
+    })
+    .then(function(res){console.log(res)})
+    .catch(function(res){console.log(res)})    
+}
+
+
 
 
 export default function SessionSet(){
+
+    
+    useEffect(()=> {        
+        fetch('http://localhost:3001/session')
+        .then(res => {
+            return res.json();
+        })
+        .then(data => {            
+            const json = JSON.parse(JSON.stringify(data));                    
+            let rows = (json.sessionServer);
+            for(var i = 0; i < rows.length; i++) rows[i].no = i+1;
+            console.log(rows)
+            originRows = rows;
+            setRows(originRows);
+        })
+        
+    },[])        
+
+    
+      
+
+
     //조회 기능관련 state, 사용 변수
     //rows가 조회될 데이터들이며 처음에는 originRows로 초기화한다.
     const [rows, setRows] = useState(originRows);
@@ -114,17 +166,21 @@ export default function SessionSet(){
                         rows.map((obj, index)=>{
                             temporaryRows.push(obj);
                         });
-                                                
+                        var queryString = "http://localhost:3001/session?";                        
+                        var isQueryString = false;                        
                         for(var i = checkBoxs.length-1; i > 0; i--)
-                            if(checkBoxs[i].checked){
-                                temporaryRows.splice(i-1,1);                                
+                            if(checkBoxs[i].checked){                                
+                                if(isQueryString == false){queryString += "id="+ temporaryRows[i-1].id; isQueryString=true;}                                    
+                                else queryString += "&id="+temporaryRows[i-1].id;                                
+                                temporaryRows.splice(i-1,1);   
                             }                                
 
-                        console.log(temporaryRows);
-                        setRows(temporaryRows);                
+                        // console.log(temporaryRows);
+                        setRows(temporaryRows);       
+                        deleteApiCall(queryString);         
                         setUpdateRows(true);                        
                     }}>삭제</Button>
-                    <Button onClick={() =>{
+                    {/* <Button onClick={() =>{
                         var checkBoxs = document.getElementsByClassName("PrivateSwitchBase-input");
                         rows.map((obj, index)=>{
                             temporaryRows.push(obj);
@@ -184,7 +240,7 @@ export default function SessionSet(){
                             }
                         }
                         setRows(temporaryRows);
-                    }}>아래로</Button>
+                    }}>아래로</Button> */}
                 </ButtonGroup>
                 
             </Grid>
@@ -197,14 +253,11 @@ export default function SessionSet(){
                 }}>원래대로</Button>
                 <Button onClick={() =>{
                     //적용시 DB 접근
-                    setUpdateRows(false);                    
+                    setUpdateRows(false);   
+                    // updateApiCall();                 
                 }}>적용</Button>
             </ButtonGroup>
             </Grid>   
-
-
-
-
             <CreateTable rowData = {rows}/>
         </Grid>
 
@@ -220,14 +273,14 @@ export default function SessionSet(){
             <Typography id="keep-mounted-modal-title" variant="h6" component="h2" sx = {{mb : 3}}>
             Session Server 추가
             </Typography>
-
-            <TextField id="typeTextField" label="구분" variant="filled" fullWidth sx = {{mb : 3}}/>
-            <input type="number" name = "no" id="no" value = {originRows.length} hidden/>
-            <TextField id="privateIp" label="private_ip" variant="filled" fullWidth sx = {{mb : 3}}/>
-            <TextField id="privatePort" label="private_port" variant="filled" fullWidth sx = {{mb : 3}}/>
-            <TextField id="publicIp" label="public_ip" variant="filled" fullWidth sx = {{mb : 3}}/>
-            <TextField id="publicPort" label="public_port" variant="filled" fullWidth sx = {{mb : 3}}/>
-            <Button variant="contained" fullWidth onClick={() =>{
+            
+            <TextField id="typeTextField" label="구분" variant="filled" fullWidth sx = {{mb : 3}} required/>
+            <input type="number" name = "no" id="no" value = {originRows.length} hidden required/>
+            <TextField id="privateIp" label="private_ip" variant="filled" fullWidth sx = {{mb : 3}} required/>
+            <TextField id="privatePort" label="private_port" variant="filled" fullWidth sx = {{mb : 3}} required/>
+            <TextField id="publicIp" label="public_ip" variant="filled" fullWidth sx = {{mb : 3}} required/>
+            <TextField id="publicPort" label="public_port" variant="filled" fullWidth sx = {{mb : 3}} required/>
+            <Button type="submit" variant="contained" fullWidth onClick={() =>{
                 let typeTextField = document.getElementById("typeTextField").value;
                 let no = document.getElementById("no").value * 1 + 1;
                 let privateIp = document.getElementById("privateIp").value;
@@ -255,19 +308,22 @@ export default function SessionSet(){
 
 
 function CreateTable(props){
+    
     return(
         <>
             <Grid xs = {12}>
-            <div style={{ height: 400, width: '100%' }}>
+            <Box style={{ height: 400, width: '100%' }}>
             <DataGrid
                 rows={props.rowData}
                 columns={columns}
                 pageSize={5}
                 rowsPerPageOptions={[5]}
-                checkboxSelection                
+                checkboxSelection    
+                disableSelectionOnClick
+                experimentalFeatures={{ newEditingApi: true }}            
                 sx = {{mt : 2}}
             />
-            </div>    
+            </Box>    
             </Grid>
         </>
     )

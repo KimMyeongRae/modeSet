@@ -1,6 +1,8 @@
 import React, { Fragment } from "react";
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Grid from '@mui/material/Grid';
+import ButtonGroup from '@mui/material/ButtonGroup';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
@@ -115,6 +117,23 @@ const dashOriginBoardData = [
 //     minWidth: 700
 //   }
 // }));
+
+
+function getAllLiveAppId(){
+  let liveAppIds = [];
+  // fetch('http://localhost:3001/liveAppID')
+  // .then(res => {
+  //     return res.json();
+  // })
+  // .then(data => {            
+  //     const json = JSON.parse(JSON.stringify(data));                    
+
+  //     for(var i = 0; i < json.liveAppId; i++){
+  //       liveAppIds.push(json.liveAppId[i]);
+  //     }                  
+  // })
+  return liveAppIds;
+}
 export default function SpanningTable() {
   // const classes = useStyles();
 
@@ -127,6 +146,10 @@ export default function SpanningTable() {
     const [modeOpen, setModeOpen] = React.useState(false);
     const handleModeOpen = () => setModeOpen(true);
     const handleModeClose = () => setModeOpen(false);
+
+    const [addOpen, setAddOpen] = React.useState(false);
+    const handleAddOpen = () => setAddOpen(true);
+    const handleAddClose = () => setAddOpen(false);
 
     const [isModelIdSort, setModelIdSort] = React.useState(false);
     const [isModeSetSort, setModeSetSort] = React.useState(false);
@@ -155,7 +178,7 @@ export default function SpanningTable() {
     const checkHandleChilds = [checkHandleChild1, checkHandleChild2, checkHandleChild3, checkHandleChild4];
    
 
-    
+ 
   let tempData =[];
   return (
     //className={classes.table}
@@ -184,7 +207,7 @@ export default function SpanningTable() {
           }}>Search</Button>               
         </Box>
     </Modal>
-
+          
     <Modal
       keepMounted
       open={modeOpen}
@@ -208,99 +231,137 @@ export default function SpanningTable() {
       </Box>
     </Modal>
 
-    <Table>
-      <TableHead>
-        <TableRow>        
-          <TableHeadCell width = "50">
-            <Checkbox onChange={parentCheckHandle} checked={(((checked[0] && checked[1]) && checked[2]) && checked[3])}
-            />
-          </TableHeadCell>    
-          <TableHeadCell width="120">
-            <Stack direction="row">
-              <Typography sx = {typographyStyle} onClick={()=>{
-                var sortData = [];                  
-                dashBoardRowData.map((item) =>{
-                  sortData.push(item);
+    <Modal
+      keepMounted
+      open={addOpen}
+      onClose={handleAddClose}
+      aria-labelledby="keep-mounted-modal-title"
+      aria-describedby="keep-mounted-modal-description"
+      >
+      <Box sx={style}>
+        <TextField id="modeSetName" label="modeSetName" variant="filled" fullWidth sx = {{mb : 3}}/>
+        <TextField id="modeSetName" label="modeSetName" variant="filled" fullWidth sx = {{mb : 3}}/>
+        <TextField id="modeSetName" label="modeSetName" variant="filled" fullWidth sx = {{mb : 3}}/>
+        {/* <><CreateModeAppIdInputs liveAppIDs = {getAllLiveAppId()}/></> */}
 
-                })                  
-                if(isModelIdSort === false){
-                  //내림차순 정렬.
-                  setDashBoardRowData(sortData.sort((a,b) => {
-                    if(a.modelId < b.modelId) return 1;
-                    else if(a.modelId > b.modelId) return -1;
-                    
-                  }));
-                  setModelIdSort(true);                    
-                }else if(isModelIdSort === true){                    
-                  //오름차순 정렬
-                  setDashBoardRowData(sortData.sort((a,b) => {
-                    if(a.modelId > b.modelId) return 1;
-                    else if(a.modelId < b.modelId) return -1;
-                    
-                  }));
-
-                  setModelIdSort(false);
-                }
-                
-                // setDashBoardRowData(sortData);
-
-              }}>
-                ModelID
-              </Typography>
-              <SearchBtn sx = {{p : 0}} variant="text" onClick={handleOpen}>
-              <SearchIcon/>
-              </SearchBtn>
-            </Stack>
-          </TableHeadCell>
-          <TableHeadCell width="100">
-            <Stack direction="row">
-              <Typography  sx = {typographyStyle} onClick={() =>{
-                var sortData = [];
-                
-                dashBoardRowData.map((item) =>{
-                  sortData.push(item);
-                })
-
-                if(isModeSetSort === false){
-                  //내림차순 정렬.
-                  setDashBoardRowData(sortData.sort((a,b) => {
-                    if(a.modeSetName < b.modeSetName) return 1;
-                    else if(a.modeSetName > b.modeSetName) return -1;                    
-                  }));
-                  setModeSetSort(true);
-
-                }else if(isModeSetSort === true){
-                  // console.log("조건확인");
-                  //오름차순 정렬
-                  setDashBoardRowData(sortData.sort((a,b) => {
-                    if(a.modeSetName > b.modeSetName) return 1;
-                    else if(a.modeSetName < b.modeSetName) return -1;                      
-                  }));
-
-                  setModeSetSort(false);
-                }
+      </Box>
+    </Modal>
 
 
-              }}>
-                ModeSet
-              </Typography>
-              <SearchBtn sx = {{p : 0}} variant="text" onClick={handleModeOpen}>
-              <SearchIcon/>
-              </SearchBtn>
-            </Stack>
-          </TableHeadCell>
-          <TableHeadCell width="140">desc</TableHeadCell>
-          <TableHeadCell wdith="100">liveAppID</TableHeadCell>
-          <TableHeadCell wdith="100">modeAppID</TableHeadCell>
-          <TableHeadCell wdith="80">Debug</TableHeadCell>
-          <TableHeadCell wdith="90">PrivateSession</TableHeadCell>
-          <TableHeadCell wdith="100">PublicSession</TableHeadCell>
-          <TableHeadCell wdith="100">PrivateService</TableHeadCell>
-          <TableHeadCell wdith="100">PublicService</TableHeadCell>
-        </TableRow>
-      </TableHead>
-      <MakeTableBody rowData ={dashBoardRowData} checked = {checked} checkHandleChilds = {checkHandleChilds} />
-    </Table>
+
+    <Grid container>            
+            <Grid xs = {12}>
+                <Typography sx ={{mt : 2}} variant="h4">ModeSet</Typography> 
+            </Grid>      
+
+            <Grid xs ={10} sx ={{mt : 4}}>            
+                <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                    <Button onClick={handleAddOpen}>추가</Button>
+                    <Button>삭제</Button>
+                </ButtonGroup>                
+            </Grid>
+            <Grid xs = {2} sx ={{mt : 4, mb : 3}}>
+              <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                  <Button>원래대로</Button>
+                  <Button>적용</Button>
+                  <Button>confirm</Button>
+              </ButtonGroup>
+            </Grid>   
+            
+            <Table>
+              <TableHead>
+                <TableRow>        
+                  <TableHeadCell width = "50">
+                    <Checkbox onChange={parentCheckHandle} checked={(((checked[0] && checked[1]) && checked[2]) && checked[3])}
+                    />
+                  </TableHeadCell>    
+                  <TableHeadCell width="120">
+                    <Stack direction="row">
+                      <Typography sx = {typographyStyle} onClick={()=>{
+                        var sortData = [];                  
+                        dashBoardRowData.map((item) =>{
+                          sortData.push(item);
+
+                        })                  
+                        if(isModelIdSort === false){
+                          //내림차순 정렬.
+                          setDashBoardRowData(sortData.sort((a,b) => {
+                            if(a.modelId < b.modelId) return 1;
+                            else if(a.modelId > b.modelId) return -1;
+                            
+                          }));
+                          setModelIdSort(true);                    
+                        }else if(isModelIdSort === true){                    
+                          //오름차순 정렬
+                          setDashBoardRowData(sortData.sort((a,b) => {
+                            if(a.modelId > b.modelId) return 1;
+                            else if(a.modelId < b.modelId) return -1;
+                            
+                          }));
+
+                          setModelIdSort(false);
+                        }
+                        
+                        // setDashBoardRowData(sortData);
+
+                      }}>
+                        ModelID
+                      </Typography>
+                      <SearchBtn sx = {{p : 0}} variant="text" onClick={handleOpen}>
+                      <SearchIcon/>
+                      </SearchBtn>
+                    </Stack>
+                  </TableHeadCell>
+                  <TableHeadCell width="100">
+                    <Stack direction="row">
+                      <Typography  sx = {typographyStyle} onClick={() =>{
+                        var sortData = [];
+                        
+                        dashBoardRowData.map((item) =>{
+                          sortData.push(item);
+                        })
+
+                        if(isModeSetSort === false){
+                          //내림차순 정렬.
+                          setDashBoardRowData(sortData.sort((a,b) => {
+                            if(a.modeSetName < b.modeSetName) return 1;
+                            else if(a.modeSetName > b.modeSetName) return -1;                    
+                          }));
+                          setModeSetSort(true);
+
+                        }else if(isModeSetSort === true){
+                          // console.log("조건확인");
+                          //오름차순 정렬
+                          setDashBoardRowData(sortData.sort((a,b) => {
+                            if(a.modeSetName > b.modeSetName) return 1;
+                            else if(a.modeSetName < b.modeSetName) return -1;                      
+                          }));
+
+                          setModeSetSort(false);
+                        }
+
+
+                      }}>
+                        ModeSet
+                      </Typography>
+                      <SearchBtn sx = {{p : 0}} variant="text" onClick={handleModeOpen}>
+                      <SearchIcon/>
+                      </SearchBtn>
+                    </Stack>
+                  </TableHeadCell>
+                  <TableHeadCell width="140">desc</TableHeadCell>
+                  <TableHeadCell wdith="100">liveAppID</TableHeadCell>
+                  <TableHeadCell wdith="100">modeAppID</TableHeadCell>
+                  <TableHeadCell wdith="80">Debug</TableHeadCell>
+                  <TableHeadCell wdith="90">PrivateSession</TableHeadCell>
+                  <TableHeadCell wdith="100">PublicSession</TableHeadCell>
+                  <TableHeadCell wdith="100">PrivateService</TableHeadCell>
+                  <TableHeadCell wdith="100">PublicService</TableHeadCell>
+                </TableRow>
+              </TableHead>
+              <MakeTableBody rowData ={dashBoardRowData} checked = {checked} checkHandleChilds = {checkHandleChilds} />
+            </Table>
+        </Grid>    
       </>
   );
 }
@@ -357,3 +418,13 @@ function CreateSessionServiceRow(props){
   return content;
 }
 
+
+function CreateModeAppIdInputs(props){
+  var content;
+  
+  for(var i = 0; i < props.liveAppIds.length; i++){
+    content += <TextField id= {"modeAppId" + i} label={props.liveAppIds[i]} variant="filled" fullWidth sx = {{mb : 3}}/>    
+  }
+  
+  return content;
+}
